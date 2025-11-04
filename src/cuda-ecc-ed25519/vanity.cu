@@ -234,13 +234,13 @@ void __global__ vanity_scan(curandState* state, int* keys_found, int* gpu, int* 
 
 	// SMITH - should really be passed in, but hey ho
     	int prefix_letter_counts[MAX_PATTERNS];
-    	for (unsigned int n = 0; n < sizeof(prefixes) / sizeof(prefixes[0]); ++n) {
+    	for (unsigned int n = 0; n < sizeof(postfixes) / sizeof(postfixes[0]); ++n) {
         	if ( MAX_PATTERNS == n ) {
             		printf("NEVER SPEAK TO ME OR MY SON AGAIN");
             		return;
         	}
         	int letter_count = 0;
-        	for(; prefixes[n][letter_count]!=0; letter_count++);
+        	for(; postfixes[n][letter_count]!=0; letter_count++);
         	prefix_letter_counts[n] = letter_count;
     	}
 
@@ -273,7 +273,7 @@ void __global__ vanity_scan(curandState* state, int* keys_found, int* gpu, int* 
 	// A better approach would be to split this application into two
 	// different kernels, one that is warp-efficient for SHA512 generation,
 	// and another that is warp efficient for bignum division to more
-	// efficiently scan for prefixes. Right now bs58enc cuts performance
+	// efficiently scan for postfixes. Right now bs58enc cuts performance
 	// from 16M keys on my machine per second to 4M.
 	for (int attempts = 0; attempts < ATTEMPTS_PER_EXECUTION; ++attempts) {
 		// sha512_init Inlined
@@ -398,12 +398,12 @@ void __global__ vanity_scan(curandState* state, int* keys_found, int* gpu, int* 
 		// so it might make sense to write a new parallel kernel to do
 		// this.
 
-                for (int i = 0; i < sizeof(prefixes) / sizeof(prefixes[0]); ++i) {
+                for (int i = 0; i < sizeof(postfixes) / sizeof(postfixes[0]); ++i) {
 
                         for (int j = 0; j<prefix_letter_counts[i]; ++j) {
 
 				// it doesn't match this prefix, no need to continue
-				if ( !(prefixes[i][j] == '?') && !(prefixes[i][j] == key[j]) ) {
+				if ( !(postfixes[i][j] == '?') && !(postfixes[i][j] == key[keysize - prefix_letter_counts[i] + j]) ) {
 					break;
 				}
 
